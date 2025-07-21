@@ -1,81 +1,79 @@
-from flask import Flask, request, jsonify, session
-from recommender import predict, recommend_paper
+from flask import Flask, request, jsonify
+from upstash_redis import Redis
+import os
+from recommend_more import recommend_more_from_liked_paper
+from recommender import recommender
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"  # 若使用 session，必须设置
+
+# 初始化 Upstash Redis（确保 Render 设置了这两个环境变量）
+redis = Redis(
+    url=os.environ.get("UPSTASH_REDIS_REST_URL"),
+    token=os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+)
+
+@app.route('/')
+def home():
+    return "✅ Server is running!"
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.get_json(silent=True)
-    user_input = data.get("queryResult", {}).get("queryText", "")
-    intent_name = data.get("queryResult", {}).get("intent", {}).get("displayName", "")
+    data = request.get_json()
 
-    if not user_input:
-        return jsonify({"fulfillmentText": "No user input received."}), 200
+    # Dialogflow 的结构中，intent name 是在 queryResult 中
+    intent = data["queryResult"]["intent"]["displayName"]
+    user_input = data["queryResult"]["queryText"]
+    user_id = data["session"]  # 可以简化处理
 
-    try:
-        # === Intent 1: 用户初次请求推荐论文 ===
-        if intent_name == "getUserCrytoInterest":
-            final_label = predict(user_input)
-            paper = recommend_paper(user_input)
+    print(f"🎯 Received intent: {intent}")
 
-            if paper is None:
-                return jsonify({
-                    "fulfillmentText": f"Predicted label: {final_label}. No matching paper found."
-                }), 200
+    # 如果是主推荐意图
+    if intent == "getUserCrytoInterest":
+        result = recommender(user_input)
 
-            # 存下这次推荐的论文（作为用户喜欢的）
-            session["liked_text"] = paper["paper"].values[0]
-            session["final_label"] = final_label
+        # 把推荐中的第一篇的文本和标签存入 Redis
+        liked_text = result[0]["paper"]
+        liked_label = result[0]["label"]
+        redis.set(f"{user_id}:liked_text", liked_text)
+        redis.set(f"{user_id}:liked_label", liked_label)
 
+        # 返回推荐结果（这里只返回第一篇）
+        return jsonify({
+            "fulfillmentMessages": [
+                {"text": {"text": [f"📄 Here's a paper: {result[0]['title']}"]}}
+            ]
+        })
+
+    # 如果是请求更多推荐的意图
+    elif intent == "getUserIntentforMorePaper":
+        liked_text = redis.get(f"{user_id}:liked_text")
+        liked_label = redis.get(f"{user_id}:liked_label")
+
+        if liked_text is None or liked_label is None:
             return jsonify({
-                "fulfillmentText": (
-                    f"📌 Recommended Paper: \n\n"
-                    f"📄 Title:\n{paper['original_title'].values[0]}\n\n"
-                    f"— — — — —\n"
-                    f"📝 Abstract:\n\n"
-                    f"{paper['original_abstract'].values[0]}\n\n"
-                )
+                "fulfillmentMessages": [
+                    {"text": {"text": ["⚠️ Sorry, I couldn't find your previous preferences. Please tell me your research interest again."]}}
+                ]
             })
 
-        # === Intent 2: 用户想要更多推荐 ===
-        elif intent_name == "getUserIntentforMorePaper":
-            liked_text = session.get("liked_text")
-            label = session.get("final_label")
+        more_results = recommend_more_from_liked_paper(liked_text, liked_label)
+        response_text = "📚 Here are more papers:\n" + "\n".join([p["title"] for p in more_results])
 
-            if not liked_text or not label:
-                return jsonify({
-                    "fulfillmentText": "Sorry, I couldn't find your previous paper preference."
-                }), 200
-
-            more_papers = recommend_more_from_liked_paper(liked_text, label, top_k=5)
-
-            if not more_papers or len(more_papers) == 0:
-                return jsonify({
-                    "fulfillmentText": "No additional similar papers found at the moment."
-                }), 200
-
-            # 拼接5篇论文的摘要与标题
-            response_text = "📚 Here are some more papers you might like:\n\n"
-            for idx, row in enumerate(more_papers.itertuples(), 1):
-                response_text += (
-                    f"🔹 Paper {idx}:\n"
-                    f"📄 Title: {row.original_title}\n"
-                    f"📝 Abstract: {row.original_abstract}\n"
-                    f"— — — — —\n\n"
-                )
-
-            return jsonify({"fulfillmentText": response_text})
-
-        # === Default fallback ===
-        else:
-            return jsonify({"fulfillmentText": "Sorry, I didn't understand that."}), 200
-
-    except Exception as e:
         return jsonify({
-            "fulfillmentText": f"An error occurred: {str(e)}"
-        }), 500
+            "fulfillmentMessages": [
+                {"text": {"text": [response_text]}}
+            ]
+        })
+
+    # 兜底情况
+    else:
+        return jsonify({
+            "fulfillmentMessages": [
+                {"text": {"text": ["❓ I didn't quite understand that."]}}
+            ]
+        })
 
 if __name__ == '__main__':
     app.run(debug=True)
+
     
