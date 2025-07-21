@@ -33,7 +33,7 @@ def webhook():
         paper = recommend_paper(user_input)
 
         # 把推荐中的第一篇的文本和标签存入 Redis
-        liked_text = paper[0]["paper"]
+        liked_text = paper.iloc[0]["paper"]
         liked_label = final_label
         redis.set(f"{user_id}:liked_text", liked_text)
         redis.set(f"{user_id}:liked_label", liked_label)
