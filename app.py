@@ -88,6 +88,47 @@ def webhook():
         })
 
 
+    # 如果是主推荐意图4
+    if intent == "getUserGoldInterest":
+        final_label = predict(user_input)
+        best_paper = recommend_paper(user_input)
+
+        # 把推荐中的第一篇的文本和标签存入 Redis
+        liked_text = best_paper["paper"].values[0]
+        liked_label = final_label
+        redis.set(f"{user_id}:liked_text", liked_text)
+        redis.set(f"{user_id}:liked_label", liked_label)
+
+        return jsonify({
+            "fulfillmentText": (
+                f"📌 Recommended Paper: \n\n"
+                f"📄 {best_paper['original_title'].values[0]}\n\n"
+                f"📝 Abstract:\n\n"
+                f"{best_paper['original_abstract'].values[0]}\n\n"
+            )
+        })
+        
+    # 如果是主推荐意图5
+    if intent == "getUserQuantInterest":
+        final_label = predict(user_input)
+        best_paper = recommend_paper(user_input)
+
+        # 把推荐中的第一篇的文本和标签存入 Redis
+        liked_text = best_paper["paper"].values[0]
+        liked_label = final_label
+        redis.set(f"{user_id}:liked_text", liked_text)
+        redis.set(f"{user_id}:liked_label", liked_label)
+
+        return jsonify({
+            "fulfillmentText": (
+                f"📌 Recommended Paper: \n\n"
+                f"📄 {best_paper['original_title'].values[0]}\n\n"
+                f"📝 Abstract:\n\n"
+                f"{best_paper['original_abstract'].values[0]}\n\n"
+            )
+        })
+        
+
     # 如果是请求更多推荐的意图
     elif intent == "getUserIntentforMorePaper":
         liked_text = redis.get(f"{user_id}:liked_text")
@@ -116,6 +157,37 @@ def webhook():
             ]
         })
 
+
+    # if not satisfied
+    elif intent == "getUserIntentforAlternativePaper":
+        liked_text = redis.get(f"{user_id}:liked_text")
+        liked_label = redis.get(f"{user_id}:liked_label")
+
+        if liked_text is None or liked_label is None:
+            return jsonify({
+                "fulfillmentMessages": [
+                    {"text": {"text": ["⚠️ Sorry, I couldn't find your previous preferences. Please tell me your research interest again."]}}
+                ]
+            })
+
+        mmr_cosine_recommended = alternative_recommend_more_from_liked_paper(liked_text, liked_label, top_k=5)
+        response_text = "📚 Here are some alternative papers you might like:\n\n"
+        for idx, row in enumerate(mmr_cosine_recommended.itertuples(), 1):
+            response_text += (
+                f"🔹 Paper {idx}:\n"
+                f"📄 Title: {row.original_title}\n"
+                f"📝 Abstract: {row.original_abstract}\n"
+                f"— — — — —\n\n"
+            )
+            
+        return jsonify({
+            "fulfillmentMessages": [
+                {"text": {"text": [response_text]}}
+            ]
+        })
+
+
+    
     # 兜底情况
     else:
         return jsonify({
