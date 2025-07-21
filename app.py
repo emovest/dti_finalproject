@@ -47,6 +47,47 @@ def webhook():
             )
         })
 
+    # 如果是主推荐意图2
+    if intent == "getUserRealEstateInterest":
+        final_label = predict(user_input)
+        best_paper = recommend_paper(user_input)
+
+        # 把推荐中的第一篇的文本和标签存入 Redis
+        liked_text = best_paper["paper"].values[0]
+        liked_label = final_label
+        redis.set(f"{user_id}:liked_text", liked_text)
+        redis.set(f"{user_id}:liked_label", liked_label)
+
+        return jsonify({
+            "fulfillmentText": (
+                f"📌 Recommended Paper: \n\n"
+                f"📄 {paper['original_title'].values[0]}\n\n"
+                f"📝 Abstract:\n\n"
+                f"{paper['original_abstract'].values[0]}\n\n"
+            )
+        })
+
+    # 如果是主推荐意图3
+    if intent == "getUserArtsInterest":
+        final_label = predict(user_input)
+        best_paper = recommend_paper(user_input)
+
+        # 把推荐中的第一篇的文本和标签存入 Redis
+        liked_text = best_paper["paper"].values[0]
+        liked_label = final_label
+        redis.set(f"{user_id}:liked_text", liked_text)
+        redis.set(f"{user_id}:liked_label", liked_label)
+
+        return jsonify({
+            "fulfillmentText": (
+                f"📌 Recommended Paper: \n\n"
+                f"📄 {paper['original_title'].values[0]}\n\n"
+                f"📝 Abstract:\n\n"
+                f"{paper['original_abstract'].values[0]}\n\n"
+            )
+        })
+
+
     # 如果是请求更多推荐的意图
     elif intent == "getUserIntentforMorePaper":
         liked_text = redis.get(f"{user_id}:liked_text")
