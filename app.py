@@ -31,8 +31,8 @@ def webhook():
                 f"— — — — —\n"
                 f"📝 Abstract:\n\n"
                 f"{paper['original_abstract'].values[0]}\n\n"
-    )
-})
+            )
+        })
 
 
     except Exception as e:
