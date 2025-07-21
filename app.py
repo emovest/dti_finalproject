@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from upstash_redis import Redis
 import os
 from recommend_more import recommend_more_from_liked_paper
-from recommender import recommender
+from recommender import predict, recommend_paper
 
 app = Flask(__name__)
 
