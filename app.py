@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
 from upstash_redis import Redis
 import os
-from recommend_more import recommend_more_from_liked_paper
-from recommender import predict, recommend_paper, mmr, alternative_recommend_more_from_liked_paper
+from recommend_more import recommend_more_from_liked_paper, mmr, alternative_recommend_more_from_liked_paper
+from recommender import predict, recommend_paper
 
 app = Flask(__name__)
 
@@ -142,6 +142,13 @@ def webhook():
             })
 
         more_papers = recommend_more_from_liked_paper(liked_text, liked_label, top_k=5)
+        
+        # 提取摘要列表
+        abstract_list = more_papers["original_abstract"].tolist()
+        
+        # 存入 Redis（建议用 json）
+        redis.set(f"{user_id}:more_abstracts", json.dumps(abstract_list))
+
         response_text = "📚 Here are some more papers you might like:\n\n"
         for idx, row in enumerate(more_papers.itertuples(), 1):
             response_text += (
@@ -171,6 +178,13 @@ def webhook():
             })
 
         mmr_cosine_recommended = alternative_recommend_more_from_liked_paper(liked_text, liked_label, top_k=5)
+        
+        # 提取摘要列表
+        abstract_list = mmr_cosine_recommended["original_abstract"].tolist()
+        
+        # 存入 Redis（建议用 json）
+        redis.set(f"{user_id}:more_abstracts", json.dumps(abstract_list))
+        
         response_text = "📚 Here are some alternative papers you might like:\n\n"
         for idx, row in enumerate(mmr_cosine_recommended.itertuples(), 1):
             response_text += (
