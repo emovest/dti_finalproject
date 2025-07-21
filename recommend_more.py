@@ -4,6 +4,7 @@
 
 def recommend_more_from_liked_paper(liked_paper_text, label, top_k=5):
     # 找到该 label 对应的子集
+    df = pd.read_csv("cleaned_papers_with_id.csv")
     mask = df["label"] == label
     label_subset_df = df[mask].reset_index(drop=True)
     label_subset_embeddings = embeddings[mask.values]
