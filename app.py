@@ -28,9 +28,9 @@ def webhook():
             "fulfillmentText": (
                 f"📌 Recommended Paper: \n\n"
                 f"📄 Title:\n{paper['original_title'].values[0]}\n\n"
-                "— — — — —\n"
-                f"📝 Abstract:\n\n}"
-                f"📝 \n{paper['original_abstract'].values[0]\n\n}"
+                f"— — — — —\n"
+                f"📝 Abstract:\n\n"
+                f"{paper['original_abstract'].values[0]}\n\n"
     )
 })
 
