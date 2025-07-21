@@ -25,8 +25,15 @@ def webhook():
             }), 200
 
         return jsonify({
-            "fulfillmentText": f"Predicted label: {final_label}\n\nTitle: {paper['original_title'].values[0]}\n\nAbstract: {paper['original_abstract'].values[0]}"
-        })
+            "fulfillmentText": (
+                f"📌 Recommended Paper: \n\n"
+                f"📄 Title:\n{paper['original_title'].values[0]}\n\n"
+                "— — — — —\n"
+                f"📝 Abstract:\n\n}"
+                f"📝 \n{paper['original_abstract'].values[0]\n\n}"
+    )
+})
+
 
     except Exception as e:
         return jsonify({
