@@ -3,7 +3,13 @@
 ## Using content-based, Cosine Similarity Algorithm ##
 
 import pandas as pd
+import numpy as np
+from sentence_transformers import util, SentenceTransformer
+import torch
 
+
+embeddings = np.load("paper_embeddings.npy")
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def recommend_more_from_liked_paper(liked_paper_text, label, top_k=5):
     # 找到该 label 对应的子集
