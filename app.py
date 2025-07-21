@@ -29,19 +29,22 @@ def webhook():
 
     # 如果是主推荐意图
     if intent == "getUserCrytoInterest":
-        result = recommender(user_input)
+        final_label = predict(user_input)
+        paper = recommend_paper(user_input)
 
         # 把推荐中的第一篇的文本和标签存入 Redis
-        liked_text = result[0]["paper"]
-        liked_label = result[0]["label"]
+        liked_text = paper[0]["paper"]
+        liked_label = final_label
         redis.set(f"{user_id}:liked_text", liked_text)
         redis.set(f"{user_id}:liked_label", liked_label)
 
-        # 返回推荐结果（这里只返回第一篇）
         return jsonify({
-            "fulfillmentMessages": [
-                {"text": {"text": [f"📄 Here's a paper: {result[0]['title']}"]}}
-            ]
+            "fulfillmentText": (
+                f"📌 Recommended Paper: \n\n"
+                f"📄 {paper['original_title'].values[0]}\n\n"
+                f"📝 Abstract:\n\n"
+                f"{paper['original_abstract'].values[0]}\n\n"
+            )
         })
 
     # 如果是请求更多推荐的意图
@@ -56,9 +59,16 @@ def webhook():
                 ]
             })
 
-        more_results = recommend_more_from_liked_paper(liked_text, liked_label)
-        response_text = "📚 Here are more papers:\n" + "\n".join([p["title"] for p in more_results])
-
+        more_papers = recommend_more_from_liked_paper(liked_text, liked_label, top_k=5)
+        response_text = "📚 Here are some more papers you might like:\n\n"
+        for idx, row in enumerate(more_papers.itertuples(), 1):
+            response_text += (
+                f"🔹 Paper {idx}:\n"
+                f"📄 Title: {row.original_title}\n"
+                f"📝 Abstract: {row.original_abstract}\n"
+                f"— — — — —\n\n"
+            )
+            
         return jsonify({
             "fulfillmentMessages": [
                 {"text": {"text": [response_text]}}
