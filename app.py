@@ -41,7 +41,7 @@ def webhook():
         return jsonify({
             "fulfillmentText": (
                 f"📌 Recommended Paper: \n\n"
-                f"📄 {paper['original_title'].values[0]}\n\n"
+                f"📄 {best_paper['original_title'].values[0]}\n\n"
                 f"📝 Abstract:\n\n"
                 f"{paper['original_abstract'].values[0]}\n\n"
             )
@@ -61,7 +61,7 @@ def webhook():
         return jsonify({
             "fulfillmentText": (
                 f"📌 Recommended Paper: \n\n"
-                f"📄 {paper['original_title'].values[0]}\n\n"
+                f"📄 {best_paper['original_title'].values[0]}\n\n"
                 f"📝 Abstract:\n\n"
                 f"{paper['original_abstract'].values[0]}\n\n"
             )
@@ -81,7 +81,7 @@ def webhook():
         return jsonify({
             "fulfillmentText": (
                 f"📌 Recommended Paper: \n\n"
-                f"📄 {paper['original_title'].values[0]}\n\n"
+                f"📄 {best_paper['original_title'].values[0]}\n\n"
                 f"📝 Abstract:\n\n"
                 f"{paper['original_abstract'].values[0]}\n\n"
             )
