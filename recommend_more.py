@@ -2,6 +2,9 @@
 ## Recommender Additional Five Papers Based on User's Frist Liked Paper ## 
 ## Using content-based, Cosine Similarity Algorithm ##
 
+import pandas as pd
+
+
 def recommend_more_from_liked_paper(liked_paper_text, label, top_k=5):
     # 找到该 label 对应的子集
     df = pd.read_csv("cleaned_papers_with_id.csv")
