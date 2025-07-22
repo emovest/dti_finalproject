@@ -5,6 +5,7 @@ from recommend_more import recommend_more_from_liked_paper, mmr, alternative_rec
 from recommender import predict, recommend_paper
 import json
 import pandas as pd
+from summarization import summarize_with_primera
 
 
 app = Flask(__name__)
