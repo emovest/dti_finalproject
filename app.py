@@ -40,6 +40,8 @@ def webhook():
         liked_label = final_label
         redis.set(f"{user_id}:liked_text", liked_text)
         redis.set(f"{user_id}:liked_label", liked_label)
+        liked_abstract = best_paper["original_abstract"].values[0]
+        redis.set(f"{user_id}:liked_abstract", liked_abstract)
 
         return jsonify({
             "fulfillmentText": (
@@ -60,6 +62,8 @@ def webhook():
         liked_label = final_label
         redis.set(f"{user_id}:liked_text", liked_text)
         redis.set(f"{user_id}:liked_label", liked_label)
+        liked_abstract = best_paper["original_abstract"].values[0]
+        redis.set(f"{user_id}:liked_abstract", liked_abstract)
 
         return jsonify({
             "fulfillmentText": (
@@ -80,6 +84,8 @@ def webhook():
         liked_label = final_label
         redis.set(f"{user_id}:liked_text", liked_text)
         redis.set(f"{user_id}:liked_label", liked_label)
+        liked_abstract = best_paper["original_abstract"].values[0]
+        redis.set(f"{user_id}:liked_abstract", liked_abstract)
 
         return jsonify({
             "fulfillmentText": (
@@ -101,6 +107,8 @@ def webhook():
         liked_label = final_label
         redis.set(f"{user_id}:liked_text", liked_text)
         redis.set(f"{user_id}:liked_label", liked_label)
+        liked_abstract = best_paper["original_abstract"].values[0]
+        redis.set(f"{user_id}:liked_abstract", liked_abstract)
 
         return jsonify({
             "fulfillmentText": (
@@ -121,6 +129,8 @@ def webhook():
         liked_label = final_label
         redis.set(f"{user_id}:liked_text", liked_text)
         redis.set(f"{user_id}:liked_label", liked_label)
+        liked_abstract = best_paper["original_abstract"].values[0]
+        redis.set(f"{user_id}:liked_abstract", liked_abstract)
 
         return jsonify({
             "fulfillmentText": (
