@@ -8,11 +8,17 @@ import torch
 
 # 加载 PRIMERA 模型
 model_name = "allenai/PRIMERA"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+tokenizer = None
+model = None
+
 
 def summarize_with_primera(papers_df, text_column="original_abstract", max_input_tokens=4096, max_output_tokens=768):
     # 拼接所有摘要，并加上特殊分隔符
+
+    if tokenizer is None or model is None:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    
     abstracts = papers_df[text_column].tolist()
     full_input = " </s> ".join(abstracts)  # PRIMERA 使用 </s> 作为段落分隔
 
